@@ -1,54 +1,80 @@
+import path from 'path';
 import express from 'express';
-import validator from 'validator';
 import mongoose from 'mongoose';
 import config from '../../config';
+import { google } from 'googleapis';
 
 const router = express.Router();
 
-const Url = mongoose.model('Url');
+const customsearch = google.customsearch('v1');
+const History = mongoose.model('History');
 
 router.get('/', (req, res, next) => {
-  res.send('Hello freeCodeCamp challenge!');
+  res.sendFile(path.join(__dirname, '../views/home.html'));
 });
 
-/** handle short url and redirect */
-router.get('/:url', (req, res, next) => {
-  const { url } = req.params;
-  Url.findOne({ short_url: url }).then((url) => {
-    if (!url) return res.send({ error: 'Url is not found on database' });
-    res.redirect(url.original_url);
-  }).catch(err => res.send(err));
+
+router.get('/api/latest/imagesearch/', (req, res, next) => {
+  let { limit } = req.query;
+  limit = +limit || 0;
+  limit = limit > 50 ? 50 : limit;
+  limit = (limit > 0 && limit <= 50) ? limit : 10;
+  History.find().limit(limit).sort({ when: -1 })
+    .exec()
+    .then(data => data.map(o => ({ term: o.term, when: o.when })))
+    .then(data => res.send(data))
+    .catch((err) => {
+      console.log(err); res.send(err);
+    });
 });
 
-const mapShortenUrl = {};
-const generateShortenUrl = () => {
-  for (;;) {
-    const res = Math.floor(100000 + Math.random() * 999999);
-    if (!mapShortenUrl[res]) { mapShortenUrl[res] = 1; return res; }
-  }
-};
 
-/** handle shortening origin url and response */
-router.get('/new/:url*', (req, res, next) => {
-  const original_url = req.url.slice(5); // slice '/new/' to get url
-  if (!validator.isURL(original_url)) {
-    return res.send({ error: 'Url is not valid, please try again with valid url after /new/' });
-  }
-  Url.findOne({ original_url }).then((url) => {
-    if (url) return url;
-    const short_url = generateShortenUrl();
-    return Url.create({ original_url, short_url });
+router.get('/api/imagesearch/:term', (req, res, next) => {
+  const { term } = req.params;
+  let { offset, limit } = req.query;
+  console.log(term, offset, limit);
+
+  const history = new History({ term });
+  history.save().then(() => {}).catch(err => console.log(err));
+
+  offset = +offset || 0;
+  offset = (offset > 0) ? offset : 1;
+  limit = +limit || 0;
+  limit = (limit > 0 && limit <= 10) ? limit : 10;
+
+  console.log(offset, limit);
+
+  customsearch.cse.list({
+    auth: config.ggApiKey, cx: config.ggCX,
+    q: term,
+    start: offset,
+    num: limit
   })
-    .then((url) => {
-      const { original_url, short_url } = url;
-      return res.send({ original_url, short_url: `${config.domain}/${short_url}` });
+    .then(ret => ret.data)
+    .then((data) => {
+      res.send({
+        api_info: {
+          url: '/api/imagesearch/:term?offset&limit',
+          query: {
+            offset: 'Default: 0, If offset is existen then offset > 0',
+            limit: 'Default: 10, Min: 1, Max: 10'
+          }
+        },
+        queries: data.queries,
+        searchInformation: data.searchInformation,
+        items: data.items.map(d => ({
+          title: d.title,
+          link: d.link,
+          snippet: d.snippet,
+          thumbnail: (d.pagemap.cse_thumbnail || [{}])[0].src,
+          image: (d.pagemap.cse_image || [{}])[0].src
+        }))
+      });
     })
-    .catch(err => res.send(err));
-});
-
-/** handle other routes */
-router.get('*', (req, res, next) => {
-  res.send({ error: 'To create shorten url, should format /new/[valid url]' });
+    .catch((err) => {
+      // console.log(err);
+      res.send(err);
+    });
 });
 
 export default router;

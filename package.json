@@ -28,11 +28,9 @@
     "debug": "~2.6.9",
     "dotenv": "^5.0.0",
     "express": "~4.15.5",
-    "lodash": "^4.17.5",
-    "moment": "^2.22.1",
+    "googleapis": "^31.0.2",
     "mongoose": "^5.1.2",
-    "morgan": "~1.9.0",
-    "validator": "^10.2.0"
+    "morgan": "~1.9.0"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.1",

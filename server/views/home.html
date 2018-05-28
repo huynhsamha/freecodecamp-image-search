@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Custom Search Engine - Google</title>
+</head>
+
+<body>
+  <h2>
+    Hello freeCodeCamp challenge!
+  </h2>
+  <p>
+    To get a list of the most recently submitted search strings, please try
+    <ul>
+      <li>
+        <a href="/api/latest/imagesearch" target="_blank">/api/latest/imagesearch</a>: default limit is 10
+      </li>
+      <li>
+        <a href="/api/latest/imagesearch?limit=20" target="_blank">/api/latest/imagesearch?limit=20</a>
+      </li>
+      <li>
+        <a href="/api/latest/imagesearch?limit=51" target="_blank">/api/latest/imagesearch?limit=51</a>: max limit is 50
+      </li>
+    </ul>
+  </p>
+  <p>
+    To get the image URLs, alt text and page urls for a set of images relating to a given search string, please try
+    <ul>
+      <li>
+        <a href="/api/imagesearch/github%20huynhsamha" target="_blank">/api/imagesearch/github%20huynhsamha</a>: default offset is 0, limit is 10
+      </li>
+      <li>
+        <a href="/api/imagesearch/github%20huynhsamha?offset=5&limit=8" target="_blank">/api/imagesearch/github%20huynhsamha?offset=5</a>
+      </li>
+      <li>
+        <a href="/api/imagesearch/huynhsamha?offset=0&limit=8" target="_blank">/api/imagesearch/huynhsamha?offset=0&limit=15</a>:
+        if query has offset, that will make offset is 1
+      </li>
+      <li>
+        <a href="/api/imagesearch/github?offset=20&limit=20" target="_blank">/api/imagesearch/github?offset=20&limit=20</a>:
+        max limit is 10
+      </li>
+    </ul>
+
+  </p>
+</body>
+
+</html>
